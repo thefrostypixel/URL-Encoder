@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>URL-Encoder</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="initial-scale=1">
+        <meta name="description" content="Encode a file or text into a URL">
+        <meta charset="UTF-8">
+        <link rel="icon" href="Icon.svg">
+        <style>
+            body {
+                background: #222;
+                margin: 0;
+                padding: 75px 15px 15px 15px;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            header {
+                background: linear-gradient(#222, #2228);
+                backdrop-filter: blur(5px);
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100vw;
+                padding: 20px 0;
+                text-align: center;
+                font-size: 30px;
+            }
+            main {
+                max-width: 1000px;
+                margin: auto;
+            }
+            input, textarea, button {
+                background: #444;
+                border: 1px solid #AAA;
+                border-radius: 5px;
+                padding: 9px;
+                resize: none;
+            }
+            textarea {
+                border-radius: 15px;
+                width: calc(100% - 30px);
+                height: 300px;
+                padding: 14px;
+            }
+            button {
+                background: #666;
+                border: none;
+                padding: 10px 20px;
+            }
+            input[type=checkbox], button, label {
+                cursor: pointer;
+            }
+            input[type=checkbox] {
+                width: 61px;
+                height: 23px;
+                margin: 2px 4px 13px 4px;
+            }
+            input[type=checkbox]::before {
+                content: "";
+                background: #666;
+                border-radius: 17px;
+                display: block;
+                width: 60px;
+                height: 34px;
+                margin-left: -5px;
+                transition: background .3s;
+            }
+            input[type=checkbox]:checked::before {
+                background: #09E;
+            }
+            input[type=checkbox]::after {
+                content: "";
+                background: #EEE;
+                border-radius: 15px;
+                display: block;
+                width: 26px;
+                height: 26px;
+                margin: -30px -1px;
+                transition: margin .3s;
+            }
+            input[type=checkbox]:checked::after {
+                margin: -30px 25px;
+            }
+            label {
+                padding: 8px 0;
+            }
+            [hidden] {
+                display: none !important;
+            }
+            .button-row {
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                padding: 10px 20px;
+                text-align: center;
+            }
+            .dropdown {
+                background: #444;
+                outline: 1px solid #AAA;
+                border: 10px solid #0000;
+                border-radius: 15px;
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                width: fit-content;
+                max-height: 280px;
+                margin-top: -1px;
+                overflow: scroll;
+            }
+            .dropdown button + button {
+                margin-top: 5px;
+            }
+            #type-button, #type-input, #variant-button {
+                margin: 2px 0 2px 4px;
+            }
+            * {
+                outline: none;
+                color: #EEE;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
+            }
+            *::placeholder {
+                color: #AAA;
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <header>URL-Encoder</header>
+        <main>
+            <textarea id="text-input" oninput="encodingText=this.value.length>0||!file;encode()" placeholder="Text to encode"></textarea>
+            <div class="button-row">
+                <span id="file">or drop a file</span>
+                <span id="input-size">0 Bytes</span>
+            </div>
+            Type: <button id="type-button" onclick="showPopup(this,'type-dropdown')">Text</button>
+            <div id="type-dropdown" class="dropdown" hidden>
+                <button onclick="selectMimeType(this,'text/plain')">Text</button>
+                <button onclick="selectMimeType(this,'text/markdown')">Markdown</button>
+                <button onclick="selectMimeType(this,'text/html')">HTML</button>
+                <button onclick="selectMimeType(this,'image/svg+xml')">SVG</button>
+                <button onclick="selectMimeType(this,'text/xml')">XML</button>
+                <button onclick="selectMimeType(this,'text/javascript')">JavaScript</button>
+                <button onclick="selectMimeType(this,'text/json')">JSON</button>
+                <button onclick="selectMimeType(this,'text/css')">CSS</button>
+                <button onclick="selectMimeType(this,'application/octet-stream')">Binary</button>
+                <button onclick="selectMimeType(this,'custom')">Custom</button>
+            </div>
+            <input id="type-input" oninput="selectMimeType(this,this.value)" value="text/plain" hidden><br>
+            Variant: <button id="variant-button" onclick="showPopup(this,'variant-dropdown')">Auto (Percent Encoding)</button>
+            <div id="variant-dropdown" class="dropdown" hidden>
+                <button onclick="selectEncoding(this)">Auto</button>
+                <button onclick="selectEncoding(this)">Percent Encoding</button>
+                <button onclick="selectEncoding(this)">Base 64</button>
+            </div>
+            <br><br>
+            <button onclick="document.getElementById('percent-encoding-options').hidden=!document.getElementById('percent-encoding-options').hidden">Percent Encoding Options</button>
+            <br>
+            <div id="percent-encoding-options" hidden>
+                <br><input id="encode-spaces" type="checkbox" onclick="encode()"><label for="encode-spaces">Percent encode spaces</label>
+                <br><input id="encode-optional" type="checkbox" onclick="encode()"><label for="encode-optional">Percent encode all optional characters (makes the output larger but might be required in some cases)</label>
+                <br>
+                <br><input id="escape-5C" type="checkbox" onclick="encode()"><label for="escape-5C">Escape backslashes as \\ in percent encoding</label>
+                <br><input id="escape-60" type="checkbox" onclick="encode()"><label for="escape-60">Escape backticks as \` in percent encoding</label>
+                <br>
+                <br><input id="escape-22" type="checkbox" onclick="encode()"><label for="escape-22">Escape quotes as \" in percent encoding</label>
+                <br><input id="quotes-to-accents" type="checkbox" onclick="encode()"><label for="quotes-to-accents">Replace quotes with accents</label>
+                <br>
+                <br><input id="escape-27" type="checkbox" onclick="encode()"><label for="escape-27">Escape accents as \' in percent encoding</label>
+                <br><input id="accents-to-quotes" type="checkbox" onclick="encode()"><label for="accents-to-quotes">Replace accents with quotes</label>
+            </div>
+            <br>
+            <div class="button-row">
+                <button id="encode" onclick="encode(true)" hidden>Encode...</button>
+                <button onclick="document.getElementById('output').hidden=!document.getElementById('output').hidden">View Encoded</button>
+                <button onclick="if(outputOutdated)encode(true);navigator.clipboard.writeText(document.getElementById('output').value)">Copy Encoded</button>
+                <span id="output-size">16 Bytes</span>
+            </div>
+            <textarea id="output" readonly hidden>data:text/plain,</textarea>
+        </main>
+        <script>
+            let file;
+            let encodingText = true;
+            let outputOutdated = false;
+            document.ondragover = event => event.preventDefault();
+            document.ondrop = event => {
+                event.preventDefault();
+                file = {name: event.dataTransfer.files[0].name};
+                let reader = new FileReader();
+                reader.onload = loaded => {
+                    encodingText = false;
+                    file.data = new Uint8Array(loaded.target.result);
+                    encode();
+                };
+                reader.readAsArrayBuffer(event.dataTransfer.files[0]);
+            };
+            let showPopup = (button = document.body, popupID) => {
+                if (document.onclick) {
+                    document.onclick({target: button});
+                }
+                if (popupID) {
+                    document.getElementById(popupID).hidden = false;
+                    document.getElementById(popupID).style.setProperty("left", button.offsetLeft - 10 + "px");
+                    document.onclick = e => {
+                        if (!button.contains(e.target) && !document.getElementById(popupID).contains(e.target)) {
+                            document.getElementById(popupID).hidden = true;
+                            document.onclick = null;
+                        }
+                    };
+                }
+            };
+            let selectMimeType = (button, mimeType) => {
+                if (button != document.getElementById("type-input")) {
+                    document.getElementById("type-button").innerText = button.innerText;
+                    if ((document.getElementById("type-input").hidden = mimeType != "custom")) {
+                        document.getElementById("type-input").value = mimeType;
+                    }
+                }
+                showPopup();
+                encode();
+            };
+            let selectEncoding = button => {
+                document.getElementById("variant-button").innerText = button.innerText;
+                showPopup();
+                encode();
+            };
+            let sizeStr = bytes => bytes + (bytes < 1024 ? " Bytes" : " Bytes (" + Math.round(100 * bytes / 1024 ** Math.floor(Math.log(bytes) / Math.log(1024))) / 100 + " " + ["KiB", "MiB", "GiB"][Math.floor(Math.log(bytes) / Math.log(1024)) - 1] + ")");
+            let encode = encodeLargeFiles => {
+                let input = encodingText ? new TextEncoder().encode(document.getElementById("text-input").value) : file.data;
+                document.getElementById("file").innerText = encodingText ? "or drop a file" : "File: " + file.name;
+                document.getElementById("input-size").innerText = sizeStr(input.length);
+                document.getElementById("encode").hidden = input.length < 0x100000;
+                if ((outputOutdated = input.length >= 0x100000 && !encodeLargeFiles)) {
+                    return;
+                }
+                let options = {};
+                document.querySelectorAll("#percent-encoding-options input").forEach(e => options[e.id] = e.checked);
+                let percentEncoded = "";
+                let base64Encoded = "";
+                let percentEncode = b => percentEncoded += (b = b == 0x22 && options["quotes-to-accents"] ? 0x27 : b == 0x27 && options["accents-to-quotes"] ? 0x22 : b) > (options["encode-spaces"] ? 0x20 : 0x1F) && b < 0x7F && b != 0x23 && b != 0x25 && (!options["encode-optional"] || b > 0x2C && b < 0x2F || b > 0x2F && b < 0x3A || b > 0x40 && b < 0x5B || b == 0x5F || b > 0x60 && b < 0x7B || b == 0x7E) ? (options["escape-" + b.toString(16).toUpperCase()] ? "\\" : "") + String.fromCharCode(b) : (b < 0x10 ? "%0" : "%") + b.toString(16).toUpperCase();
+                let base64Encode = b => base64Encoded += String.fromCharCode(b);
+                input.forEach(document.getElementById("variant-button").innerText == "Percent Encoding" ? percentEncode : document.getElementById("variant-button").innerText == "Base 64" ? base64Encode : (b => {
+                    percentEncode(b);
+                    base64Encode(b);
+                }));
+                base64Encoded = btoa(base64Encoded);
+                let encoding = document.getElementById("variant-button").innerText.indexOf("Auto") == 0 ? (percentEncoded.length < base64Encoded.length + 7 ? "Percent Encoding" : "Base 64") : document.getElementById("variant-button").innerText;
+                document.getElementById("variant-button").innerText = document.getElementById("variant-button").innerText.indexOf("Auto") == 0 ? "Auto (" + encoding + ")" : encoding;
+                document.getElementById("output").value = "data:" + (document.getElementById("type-input").value || "text/plain") + (encoding == "Percent Encoding" ? "," + percentEncoded : ";base64," + base64Encoded);
+                document.getElementById("output-size").innerText = sizeStr(document.getElementById("output").value.length);
+            };
+        </script>
+    </body>
+</html>
